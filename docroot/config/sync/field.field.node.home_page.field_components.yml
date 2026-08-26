@@ -1,0 +1,36 @@
+uuid: 3c34bb23-563d-465f-b33a-ba567529e1ef
+langcode: en-gb
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_components
+    - node.type.home_page
+    - paragraphs.paragraphs_type.hero_image
+    - paragraphs.paragraphs_type.webform
+  module:
+    - entity_reference_revisions
+id: node.home_page.field_components
+field_name: field_components
+entity_type: node
+bundle: home_page
+label: Components
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    target_bundles:
+      hero_image: hero_image
+      webform: webform
+    negate: 0
+    target_bundles_drag_drop:
+      hero_image:
+        weight: 2
+        enabled: true
+      webform:
+        weight: 3
+        enabled: true
+field_type: entity_reference_revisions

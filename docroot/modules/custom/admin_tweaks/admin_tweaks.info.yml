@@ -1,0 +1,7 @@
+name: Admin Tweaks
+type: module
+description: Small tweaks and customizations for the admin theme.
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:system

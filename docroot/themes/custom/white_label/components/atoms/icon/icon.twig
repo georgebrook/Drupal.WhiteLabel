@@ -1,0 +1,35 @@
+{#
+/**
+ * Available variables:
+ * - icon_base_class      : base class name (default: 'icon')
+ * - icon_modifiers       : array of modifier classes
+ * - icon_blockname       : block name prepended to base class
+ * - icon_name            : the name of the icon
+ * - icon_role            : a11y role
+ * - icon_title           : a11y title
+ * - icon_desc            : a11y description
+ * - icon_extra_class     : extra classes to add
+ * - icon_decorative      : if true, icon is decorative
+ */
+#}
+
+{% set icon_base_class = icon_base_class|default('icon') %}
+{% set icon_url = directory ? '/' ~ directory ~ '/images/icons-sprite.svg' : 'icons.svg' %}
+
+{{ attach_library('theme_name/sprite') }}
+
+<svg 
+  class="{{ icon_base_class }}{% if icon_modifiers %} {{ icon_modifiers|join(' ') }}{% endif %}{% if icon_extra_class %} {{ icon_extra_class }}{% endif %}"
+  {% if icon_decorative %}
+    aria-hidden="true" role="presentation"
+  {% else %}
+    {% if icon_role %} role="{{ icon_role }}"{% endif %}
+    {% if icon_title %} aria-labelledby="title-{{ icon_name }}"{% endif %}
+    {% if icon_desc %} aria-describedby="desc-{{ icon_name }}"{% endif %}
+  {% endif %}
+>
+  {% if icon_title %}<title id="title-{{ icon_name }}">{{ icon_title }}</title>{% endif %}
+  {% if icon_desc %}<desc id="desc-{{ icon_name }}">{{ icon_desc }}</desc>{% endif %}
+
+  <use href="{{ icon_url }}#{{ icon_name }}"></use>
+</svg>

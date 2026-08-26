@@ -1,0 +1,20 @@
+uuid: b5bb7472-f6de-42e4-aca1-ebdf12a9323a
+langcode: en
+status: false
+dependencies:
+  theme:
+    - white_label
+_core:
+  default_config_hash: Q9_2whdOj1YIomfvsIfopROW4FT_X5pY0DjdOiOaQ5U
+id: white_label_primary_admin_actions
+theme: white_label
+region: header
+weight: -5
+provider: null
+plugin: local_actions_block
+settings:
+  id: local_actions_block
+  label: 'Primary admin actions'
+  label_display: '0'
+  provider: core
+visibility: {  }

@@ -1,0 +1,23 @@
+uuid: f1a5a994-b3a6-4a0f-afad-3e18bef859e6
+langcode: en
+status: false
+dependencies:
+  module:
+    - search
+  theme:
+    - white_label
+_core:
+  default_config_hash: pbbed0hdqGDF-_QWVVTWRAwgDIotFuAvWH5mWUZu0fA
+id: white_label_search_form_wide
+theme: white_label
+region: header
+weight: -5
+provider: null
+plugin: search_form_block
+settings:
+  id: search_form_block
+  label: 'Search form (wide)'
+  label_display: '0'
+  provider: search
+  page_id: null
+visibility: {  }

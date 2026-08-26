@@ -1,0 +1,20 @@
+uuid: 05f01ff8-c55b-4c34-817b-26cb4137d841
+langcode: en
+status: false
+dependencies:
+  theme:
+    - white_label
+_core:
+  default_config_hash: 6aOgWsNTXjqrDm98TXSAjP6qd2nCijD1xw45MrnbK-Y
+id: white_label_page_title
+theme: white_label
+region: header
+weight: -5
+provider: null
+plugin: page_title_block
+settings:
+  id: page_title_block
+  label: 'Page title'
+  label_display: '0'
+  provider: core
+visibility: {  }

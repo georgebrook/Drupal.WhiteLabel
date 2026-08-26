@@ -1,0 +1,10 @@
+global-styling:
+  version: 1.0
+  css:
+    theme:
+      components/quarks/theme-variables.css: {}
+      components/quarks/reset.css: {}
+      components/quarks/base.css: {}
+      components/quarks/grid.css: {}
+  js:
+    components/quarks/global.js: {}

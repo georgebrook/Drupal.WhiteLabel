@@ -1,0 +1,60 @@
+{#
+/**
+ * Hero Organism Component
+ *
+ * Available variables:
+ * - hero_id              : optional ID for the hero section
+ * - hero_image_src       : URL of the hero image
+ * - hero_image_alt       : Alt text for the hero image
+ * - hero_text            : Raw text content to display (no heading/subheading structure)
+ * - hero_buttons         : array of button variables
+ * - hero_scroll_down     : boolean, whether to show scroll down icon (default: true)
+ * - hero_scroll_target   : ID or selector for scroll target (default: '#next-section')
+ * - hero_base_class      : base class for the hero (default: 'hero')
+ * - hero_modifiers       : array of BEM modifiers for the hero
+ */
+#}
+
+{% set hero_base_class = hero_base_class|default('hero') %}
+{% set hero_modifiers = hero_modifiers|default([]) %}
+{% set hero_id = hero_id|default('hero') %}
+{% set hero_scroll_down = hero_scroll_down is defined ? hero_scroll_down : true %}
+
+<section class={{ bem(hero_base_class, hero_modifiers) }} role="banner">
+
+	<div class="{{ bem('image-wrapper', [], hero_base_class) }}">
+		{% block hero_image %}
+			{% include 'white_label:image' with {
+          image_src: hero_image_src,
+          image_alt: hero_image_alt|default(''),
+          image_base_class: hero_base_class,
+          image_blockname: 'image'
+        } %}
+		{% endblock %}
+	</div>
+
+	<div class="{{ bem('content', [], hero_base_class) }}">
+		{% if hero_text %}
+			{{ hero_text|raw }}
+		{% endif %}
+	</div>
+
+	{% if hero_scroll_down %}
+		{% include 'white_label:button' with {
+      button_icon: 'chevron-down',
+			button_modifiers: ['reset'],
+      button_url: hero_scroll_target,
+      button_content: 'Click to scroll down'|t,
+      button_icon_position: 'only',
+      button_extra_classes: [hero_base_class ~ '__scroll-down'], 
+    } %}
+
+    {% include 'white_label:icon' with {
+      icon_name: 'arrow',
+      icon_decorative: button_icon_position != 'only',
+      icon_blockname: 'icon',
+      icon_modifiers: ['fancy']
+    } %}
+	{% endif %}
+
+</section>

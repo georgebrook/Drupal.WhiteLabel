@@ -1,0 +1,4 @@
+admin_tweaks:
+  css:
+    theme:
+      css/admin-tweaks.css: {}

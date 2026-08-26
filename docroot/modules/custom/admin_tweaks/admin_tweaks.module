@@ -1,0 +1,45 @@
+<?php
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Form\FormStateInterface;
+
+
+/**
+ * Implements hook_page_attachments_alter().
+ */
+function admin_tweaks_page_attachments_alter(array &$attachments) {
+  // Load CSS only on admin routes.
+  if (\Drupal::service('router.admin_context')->isAdminRoute()) {
+    // Ensure it loads after Gin by appending it at the end.
+    $attachments['#attached']['library'][] = 'admin_tweaks/admin_tweaks';
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function admin_tweaks_form_paragraphs_browser_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  // If the structure isn't what we expect, bail early.
+  if (empty($form['paragraph_types']) || !is_array($form['paragraph_types'])) {
+    return;
+  }
+
+  foreach ($form['paragraph_types'] as $group_key => &$group) {
+    // Skip non-groups (filters, textfields, etc.)
+    if (!is_array($group) || empty($group)) {
+      continue;
+    }
+
+    foreach ($group as $item_key => &$item) {
+      if (!is_array($item) || empty($item['add_more'])) {
+        continue;
+      }
+
+      foreach ($item['add_more'] as $button_key => &$button) {
+        if (isset($button['#type']) && $button['#type'] === 'submit') {
+          $button['#attributes']['class'][] = 'button button--primary';
+        }
+      }
+    }
+  }
+}

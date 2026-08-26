@@ -1,0 +1,31 @@
+uuid: d634baa4-02fc-499d-8919-53ffbdb6650f
+langcode: en-gb
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.hero_image.field_image
+    - field.field.paragraph.hero_image.field_text
+    - paragraphs.paragraphs_type.hero_image
+id: paragraph.hero_image.default
+targetEntityType: paragraph
+bundle: hero_image
+mode: default
+content:
+  field_image:
+    type: entity_reference_entity_view
+    label: hidden
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_text:
+    type: string
+    label: hidden
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden: {  }

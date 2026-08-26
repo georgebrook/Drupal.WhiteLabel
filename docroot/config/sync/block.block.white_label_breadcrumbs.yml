@@ -1,0 +1,22 @@
+uuid: f4105dc0-2474-4bc9-9189-66f4bb87cdf4
+langcode: en
+status: false
+dependencies:
+  module:
+    - system
+  theme:
+    - white_label
+_core:
+  default_config_hash: VhBzWb7lMRtIOg9G7VSw_0uopi-7zXeHq4vXqqV1HFE
+id: white_label_breadcrumbs
+theme: white_label
+region: header
+weight: 0
+provider: null
+plugin: system_breadcrumb_block
+settings:
+  id: system_breadcrumb_block
+  label: Breadcrumbs
+  label_display: '0'
+  provider: system
+visibility: {  }

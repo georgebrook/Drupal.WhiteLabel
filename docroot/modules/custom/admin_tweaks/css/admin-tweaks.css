@@ -1,0 +1,20 @@
+.paragraphs-browser-wrapper fieldset:not(.fieldgroup) legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  font-weight: bold;
+  position: relative;
+}
+
+.gin--navigation .admin-toolbar__item > .toolbar-menu {
+  margin-block-start: revert;
+}
+
+.navigation-menu-wrapper.admin-toolbar__logo {
+  margin-bottom: var(--gin-spacing-l);
+}
+
+.gin--navigation .toolbar-menu__item--level-1 > .toolbar-link.toolbar-link--create {
+  margin-block-start: 0;
+}

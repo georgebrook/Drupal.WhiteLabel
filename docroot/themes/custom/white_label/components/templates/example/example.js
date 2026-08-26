@@ -1,0 +1,1 @@
+!function(o,t){"use strict";o.behaviors.logContext={attach:(o,e)=>{t("logContext","body",o).forEach(t=>{console.log("Drupal behavior context:",o),console.log("Settings:",e),console.log("Element:",t)})}}}(Drupal,once);

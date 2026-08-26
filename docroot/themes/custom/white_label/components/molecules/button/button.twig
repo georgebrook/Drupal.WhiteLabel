@@ -1,0 +1,67 @@
+{#
+/**
+ * Button Component
+ *
+ * Available variables:
+ * - button_base_class    : base class for the button (default: 'button')
+ * - button_modifiers     : array of BEM modifiers
+ * - button_blockname     : block name for BEM element
+ * - button_extra_classes : extra classes to add
+ * - button_content       : text content of the button
+ * - button_icon          : name of the icon (optional)
+ * - button_icon_position : 'before', 'after', or 'only' (default: 'after')
+ * - button_url           : if set, renders <a>, otherwise <button>
+ * - button_aria_label    : aria-label for accessibility (required for icon-only buttons)
+ */
+#}
+
+{% set button_base_class = button_base_class|default('button') %}
+{% set button_modifiers = button_modifiers|default([]) %}
+{% set button_icon_position = button_icon_position|default('after') %}
+{% set button_aria_label = button_aria_label|default(button_content|default('Button')) %}
+
+{# Add icon modifier if icon exists #}
+{% if button_icon %}
+  {% set button_modifiers = button_modifiers|merge(['icon']) %}
+  {% if button_icon_position == 'only' %}
+    {% set button_modifiers = button_modifiers|merge(['icon-only']) %}
+  {% endif %}
+{% endif %}
+
+{# Determine tag: <a> if URL is provided, <button> otherwise #}
+{% set tag = button_url is defined and button_url ? 'a' : 'button' %}
+
+<{{ tag }}
+  class="{{ bem(button_base_class, button_modifiers, button_blockname, button_extra_classes|default([])) }}"
+  {% if button_icon_position == 'only' %}aria-label="{{ button_aria_label }}"{% endif %}
+  {% if tag == 'a' %}href="{{ button_url|default('#') }}"{% endif %}
+  {% if tag == 'button' %}type="button"{% endif %}
+>
+  {% if button_icon and button_icon_position == 'before' %}
+    {% include 'white_label:icon' with {
+      icon_name: button_icon,
+      icon_decorative: button_icon_position != 'only',
+      icon_blockname: 'icon'
+    } %}
+  {% endif %}
+
+  {% if button_icon_position != 'only' %}
+    {{ button_content }}
+  {% endif %}
+
+  {% if button_icon and button_icon_position == 'only' %}
+    {% include 'white_label:icon' with {
+      icon_name: button_icon,
+      icon_decorative: false, 
+      icon_blockname: 'icon'
+    } %}
+  {% endif %}
+
+  {% if button_icon and button_icon_position == 'after' %}
+    {% include 'white_label:icon' with {
+      icon_name: button_icon,
+      icon_blockname: 'icon'
+    } %}
+  {% endif %}
+</{{ tag }}>
+

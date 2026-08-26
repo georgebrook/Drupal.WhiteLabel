@@ -1,0 +1,21 @@
+{#
+/**
+ * Available variables:
+ * - image_base_class : base class for the image (default: 'image')
+ * - image_modifiers  : array of BEM modifiers
+ * - image_blockname  : block name for BEM element
+ * - image_extra_class: extra classes to add
+ * - image_src        : image source URL (required)
+ * - image_alt        : alt text (required for accessibility)
+ * - image_title      : optional title attribute
+ */
+#}
+
+{% set image_base_class = image_base_class|default('image') %}
+
+<img 
+  {{ bem(image_base_class, image_modifiers|default([]), image_blockname, image_extra_class|default([])) }}
+  src="{{ image_src }}"
+  {% if image_alt is defined %} alt="{{ image_alt }}"{% else %} alt=""{% endif %}
+  {% if image_title %} title="{{ image_title }}"{% endif %}
+/>

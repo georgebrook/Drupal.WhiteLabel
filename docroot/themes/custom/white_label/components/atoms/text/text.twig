@@ -1,0 +1,16 @@
+{#
+/**
+ * Available variables:
+ * - text_base_class : base class for the paragraph (default: 'text')
+ * - text_modifiers  : array of BEM modifiers
+ * - text_blockname  : block name for BEM element
+ * - text_extra_class: extra classes to add
+ * - text_content    : content of the paragraph (required)
+ */
+#}
+
+{% set text_base_class = text_base_class|default('text') %}
+
+<p {{ bem(text_base_class, text_modifiers|default([]), text_blockname, text_extra_class|default([])) }}>
+  {{ text_content }}
+</p>

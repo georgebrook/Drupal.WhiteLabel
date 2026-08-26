@@ -1,0 +1,6 @@
+name: 'Twig BEM'
+type: module
+description: 'Provides a minimal BEM Twig function for Drupal themes.'
+core_version_requirement: ^10 || ^11
+package: Custom
+dependencies: []

@@ -1,0 +1,19 @@
+{#
+/**
+ * Available variables:
+ * - heading_base_class : base class for the heading (default: 'heading')
+ * - heading_modifiers  : array of BEM modifiers
+ * - heading_blockname  : block name for BEM element
+ * - heading_extra_class: extra classes to add
+ * - heading_level      : heading level (1-6), default: 2
+ * - heading_text       : content of the heading (required)
+ */
+#}
+
+{% set heading_base_class = heading_base_class|default('heading') %}
+{% set heading_level = heading_level|default(2) %}
+{% set heading_tag = 'h' ~ heading_level %}
+
+<{{ heading_tag }} {{ bem(heading_base_class, heading_modifiers|default([]), heading_blockname, heading_extra_class|default([])) }}>
+  {{ heading_text }}
+</{{ heading_tag }}>
