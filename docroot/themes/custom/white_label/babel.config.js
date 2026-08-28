@@ -3,10 +3,10 @@ module.exports = {
     [
       '@babel/preset-env',
       {
-        targets: "> 0.25%, not dead", // modern browser support
-        useBuiltIns: "usage",
-        corejs: 3
-      }
-    ]
-  ]
+        targets: '> 0.25%, not dead', // modern browser support
+        useBuiltIns: 'usage',
+        corejs: 3,
+      },
+    ],
+  ],
 };

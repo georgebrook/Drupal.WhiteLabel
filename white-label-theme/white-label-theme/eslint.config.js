@@ -1,6 +1,7 @@
 const js = require("@eslint/js");
 const globals = require("globals");
 const { defineConfig } = require("eslint/config");
+const { rules: airbnbBaseRules } = require("eslint-config-airbnb-extended/legacy");
 const eslintConfigPrettier = require("eslint-config-prettier");
 
 module.exports = defineConfig([
@@ -36,6 +37,8 @@ module.exports = defineConfig([
       },
     },
     rules: {
+      ...airbnbBaseRules,
+
       // 2-space indentation (Drupal JS coding standard)
       indent: ["error", 2, { SwitchCase: 1 }],
 

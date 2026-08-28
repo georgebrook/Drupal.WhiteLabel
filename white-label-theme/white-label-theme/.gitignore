@@ -1,0 +1,18 @@
+node_modules/
+
+# Compiled JS and CSS — these are build artefacts and should not be committed
+# unless your deployment process requires it. Remove these lines if you commit
+# compiled assets (common in Drupal projects without a CI build step).
+components/atoms/**/!(src)/*.js
+components/atoms/**/!(src)/*.css
+components/molecules/**/!(src)/*.js
+components/molecules/**/!(src)/*.css
+components/organisms/**/!(src)/*.js
+components/organisms/**/!(src)/*.css
+components/templates/**/!(src)/*.js
+components/templates/**/!(src)/*.css
+components/vendor/**/!(src)/*.js
+components/vendor/**/!(src)/*.css
+
+# Generated SVG sprite
+images/icons-sprite.svg

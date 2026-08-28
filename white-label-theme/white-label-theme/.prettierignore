@@ -1,0 +1,21 @@
+# Compiled output — never format these
+components/atoms/**/!(src)/*.js
+components/atoms/**/!(src)/*.css
+components/molecules/**/!(src)/*.js
+components/molecules/**/!(src)/*.css
+components/organisms/**/!(src)/*.js
+components/organisms/**/!(src)/*.css
+components/templates/**/!(src)/*.js
+components/templates/**/!(src)/*.css
+components/vendor/**/!(src)/*.js
+components/vendor/**/!(src)/*.css
+
+# Generated SVG sprite
+images/icons-sprite.svg
+
+# Dependencies
+node_modules/
+
+# Minified files
+*.min.js
+*.min.css

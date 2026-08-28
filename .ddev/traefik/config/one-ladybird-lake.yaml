@@ -1,0 +1,98 @@
+#ddev-generated
+# If you remove the ddev-generated line above you
+# are responsible for maintaining this file. DDEV will not then
+# update it, for example if you add `additional_hostnames`, etc.
+
+http:
+  routers:
+    one-ladybird-lake-xhgui-80-http:
+      entrypoints:
+        - http-8143
+      rule: HostRegexp(`^one-ladybird-lake\.ddev\.site$`)
+      
+      service: "one-ladybird-lake-xhgui-80"
+      tls: false
+      # middlewares:
+      #   - "one-ladybird-lake-redirectHttps"
+    one-ladybird-lake-web-80-http:
+      entrypoints:
+        - http-80
+      rule: HostRegexp(`^one-ladybird-lake\.ddev\.site$`)
+      
+      service: "one-ladybird-lake-web-80"
+      tls: false
+      # middlewares:
+      #   - "one-ladybird-lake-redirectHttps"
+    one-ladybird-lake-web-8025-http:
+      entrypoints:
+        - http-8025
+      rule: HostRegexp(`^one-ladybird-lake\.ddev\.site$`)
+      
+      service: "one-ladybird-lake-web-8025"
+      tls: false
+      # middlewares:
+      #   - "one-ladybird-lake-redirectHttps"
+    
+    
+    one-ladybird-lake-xhgui-80-https:
+      entrypoints:
+        - http-8142
+      rule: HostRegexp(`^one-ladybird-lake\.ddev\.site$`)
+      
+      service: "one-ladybird-lake-xhgui-80"
+      
+      tls: true
+      
+    
+    
+    one-ladybird-lake-web-80-https:
+      entrypoints:
+        - http-443
+      rule: HostRegexp(`^one-ladybird-lake\.ddev\.site$`)
+      
+      service: "one-ladybird-lake-web-80"
+      
+      tls: true
+      
+    one-ladybird-lake-web-8025-https:
+      entrypoints:
+        - http-8026
+      rule: HostRegexp(`^one-ladybird-lake\.ddev\.site$`)
+      
+      service: "one-ladybird-lake-web-8025"
+      
+      tls: true
+      
+    
+
+  middlewares:
+    one-ladybird-lake-redirectHttps:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  services:
+    one-ladybird-lake-xhgui-80:
+      loadbalancer:
+        servers:
+          - url: http://ddev-one-ladybird-lake-xhgui:80
+        
+    
+    one-ladybird-lake-web-80:
+      loadbalancer:
+        servers:
+          - url: http://ddev-one-ladybird-lake-web:80
+        
+    one-ladybird-lake-web-8025:
+      loadbalancer:
+        servers:
+          - url: http://ddev-one-ladybird-lake-web:8025
+        
+    
+    
+    
+
+tls:
+  certificates:
+    - certFile: /mnt/ddev-global-cache/traefik/certs/one-ladybird-lake.crt
+      keyFile: /mnt/ddev-global-cache/traefik/certs/one-ladybird-lake.key

@@ -8,3 +8,6 @@ global-styling:
       components/quarks/grid.css: {}
   js:
     components/quarks/global.js: {}
+  dependencies:
+    - core/drupal
+    - core/once

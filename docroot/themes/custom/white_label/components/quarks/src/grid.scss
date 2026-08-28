@@ -1,0 +1,224 @@
+@use "sass:math";
+@use "sass:map";
+@use "mixins" as *;
+
+// Return the min-width for a given breakpoint key
+@function breakpoint-min($key) {
+  @if map.has-key($grid-breakpoints, $key) {
+    @return map.get($grid-breakpoints, $key);
+  }
+
+  @error "Unknown breakpoint `#{$key}`.";
+}
+
+// Generate the suffix for responsive classes (e.g., -md), skip xs
+@function bp-class-prefix($bp) {
+  @if $bp == xs {
+    @return "";
+  }
+
+  @return "-#{$bp}";
+}
+
+// Calculate percentage width of a column based on number of spans
+@function col-percent($span) {
+  @return math.percentage(math.div($span, $grid-columns));
+}
+
+// Default number of grid columns
+$grid-columns: 12 !default;
+
+// Default gutter size between columns
+$grid-gutter: rem(24) !default;
+
+// Grid breakpoints for responsive design
+$grid-breakpoints: (
+  xs: 0,
+  sm: rem(576),
+  md: rem(768),
+  lg: rem(1024),
+  xl: rem(1200)
+) !default;
+
+// Maximum container widths for each breakpoint
+$container-max-widths: (
+  sm: rem(864),
+  md: rem(1056),
+  lg: rem(1248),
+  xl: rem(1440)
+) !default;
+
+// Media query mixin: wraps content in min-width media query
+@mixin mq($bp) {
+  $min: breakpoint-min($bp);
+
+  @if $min == 0 {
+    @content;
+  } @else {
+    @media (min-width: $min) {
+      @content;
+    }
+  }
+}
+
+// Global reset: include border-box on all elements
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+// Container setup: centers content and adds padding
+.container {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: math.div($grid-gutter, 2);
+  padding-left: math.div($grid-gutter, 2);
+
+  // Set max-width per breakpoint
+  @each $bp, $min in $grid-breakpoints {
+    @if map.has-key($container-max-widths, $bp) {
+      @include mq($bp) {
+        max-width: map.get($container-max-widths, $bp);
+      }
+    }
+  }
+}
+
+// Row: flex container with negative margins to offset column padding
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -(math.div($grid-gutter, 2));
+  margin-left: -(math.div($grid-gutter, 2));
+}
+
+// Column base: padding and default flex behavior
+.col {
+  flex: 1 0 0;
+  min-width: 0;
+  padding-right: math.div($grid-gutter, 2);
+  padding-left: math.div($grid-gutter, 2);
+}
+
+// Column that sizes to content
+.col-auto {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: 100%;
+}
+
+// Full-width column
+.col-12, .col-full {
+  flex-basis: 100%;
+  width: 100%;
+}
+
+// Generate responsive column widths, offsets, and orders
+@each $bp, $min in $grid-breakpoints {
+  $prefix: bp-class-prefix($bp);
+
+  @include mq($bp) {
+    // Hide column utility
+    .col#{$prefix}-0 {
+      display: none;
+    }
+
+    // Column width classes (1..12)
+    @for $i from 1 through $grid-columns {
+      .col#{$prefix}-#{$i} {
+        flex-basis: col-percent($i);
+        width: col-percent($i);
+      }
+    }
+
+    // Explicit full-width class
+    .col#{$prefix}-full {
+      flex-basis: 100%;
+      width: 100%;
+    }
+
+    // Offset classes (margin-left for spacing)
+    @for $o from 1 through ($grid-columns - 1) {
+      .offset#{$prefix}-#{$o} {
+        margin-left: col-percent($o);
+      }
+    }
+
+    // Order classes for flex items
+    @for $ord from 1 through $grid-columns {
+      .order#{$prefix}-#{$ord} {
+        order: $ord;
+      }
+    }
+
+    // Align self utilities
+    .align-self#{$prefix}-start { align-self: flex-start; }
+    .align-self#{$prefix}-center { align-self: center; }
+    .align-self#{$prefix}-end { align-self: flex-end; }
+    .align-self#{$prefix}-stretch { align-self: stretch; }
+  }
+}
+
+// Row alignment utilities (justify & align) for all breakpoints
+@each $bp, $min in $grid-breakpoints {
+  $prefix: bp-class-prefix($bp);
+
+  @include mq($bp) {
+    // Justify content utilities
+    .justify#{$prefix}-start { justify-content: flex-start; }
+    .justify#{$prefix}-center { justify-content: center; }
+    .justify#{$prefix}-end { justify-content: flex-end; }
+    .justify#{$prefix}-between { justify-content: space-between; }
+    .justify#{$prefix}-around { justify-content: space-around; }
+    .justify#{$prefix}-evenly { justify-content: space-evenly; }
+
+    // Align items utilities
+    .align#{$prefix}-start { align-items: flex-start; }
+    .align#{$prefix}-center { align-items: center; }
+    .align#{$prefix}-end { align-items: flex-end; }
+    .align#{$prefix}-stretch { align-items: stretch; }
+  }
+}
+
+// Remove gutters for rows
+.row-no-gutter {
+  margin-right: 0;
+  margin-left: 0;
+
+  > .col {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
+// Nested rows inside columns
+.row-nested {
+  margin-right: -(math.div($grid-gutter, 2));
+  margin-left: -(math.div($grid-gutter, 2));
+}
+
+// Equal height columns
+.row-eq {
+  align-items: stretch;
+}
+
+// Images should not overflow columns
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+// Visually hidden utility for accessibility
+.visually-hidden,
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px; margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

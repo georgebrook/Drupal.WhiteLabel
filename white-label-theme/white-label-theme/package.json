@@ -2,7 +2,6 @@
   "name": "white_label",
   "version": "1.0.0",
   "private": true,
-  "type": "commonjs",
   "scripts": {
     "start": "node build/watch.js",
     "build": "vite build --config build/vite.config.js",
@@ -21,17 +20,14 @@
     "eslint": "^9.0.0",
     "@eslint/js": "^9.0.0",
     "globals": "^15.0.0",
+    "eslint-config-airbnb-extended": "^1.0.0",
     "eslint-config-prettier": "^9.1.0",
     "vite-plugin-stylelint": "^5.3.1",
     "stylelint": "^16.6.1",
     "stylelint-config-standard-scss": "^13.1.0",
     "stylelint-order": "^6.0.4",
     "postcss-scss": "^4.0.9",
-    "svgo": "^4.1.0",
-    "prettier": "^3.3.0",
-    "@babel/core": "^7.28.5",
-    "@babel/preset-env": "^7.28.5",
-    "@rollup/plugin-babel": "^6.0.4",
-    "core-js": "^3.46.0"
+    "vite-svg-spritemap-plugin": "^1.0.4",
+    "prettier": "^3.3.0"
   }
 }
