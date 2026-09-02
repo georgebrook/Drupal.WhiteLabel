@@ -18,8 +18,6 @@ docroot/sites/*/private/
 .ddev/.snapshot
 .ddev/docker-compose.*.yaml
 .ddev/homeadditions/
-.ddev/commands/host/
-.ddev/commands/web/
 !.ddev/config.yaml
 !.ddev/docker-compose.*.yaml
 !.ddev/providers.yaml

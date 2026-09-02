@@ -1,0 +1,99 @@
+#!/bin/bash
+set -e
+
+## Description: Run an npm script inside a theme (defaults to the site's default theme)
+## Usage: theme [THEME_NAME] NPM_COMMAND
+## Example: "ddev theme build"
+## Example: "ddev theme watch"
+## Example: "ddev theme white_label lint:fix"
+## Example: "ddev theme list"
+
+# Resolve the site's default theme via drush.
+get_default_theme() {
+  local theme_name
+  theme_name="$(drush config:get system.theme default --format=string 2>/dev/null)"
+  if [ -z "$theme_name" ]; then
+    echo "Error: could not determine the default theme via drush. Pass a theme name explicitly." >&2
+    exit 1
+  fi
+  echo "$theme_name"
+}
+
+# List the npm scripts available for a given theme.
+list_commands() {
+  local theme_name="$1"
+  local theme_path="docroot/themes/custom/$theme_name"
+
+  if [ ! -d "$theme_path" ]; then
+    echo "Error: Theme '$theme_name' does not exist in docroot/themes/custom/"
+    exit 1
+  fi
+
+  if [ ! -f "$theme_path/package.json" ]; then
+    echo "Error: No package.json found in '$theme_path'"
+    exit 1
+  fi
+
+  echo "Available commands for theme '$theme_name':"
+  node -e "console.log(Object.keys(require('./$theme_path/package.json').scripts || {}).map(s => '  ' + s).join('\n'))"
+  echo ""
+  echo "Usage: ddev theme [THEME_NAME] NPM_COMMAND"
+}
+
+# THEME_NAME is optional and defaults to the site's default theme.
+# Usage: ddev theme NPM_COMMAND
+#        ddev theme THEME_NAME NPM_COMMAND
+#        ddev theme [THEME_NAME] list|-h|--help
+if [ "$#" -eq 0 ]; then
+  list_commands "$(get_default_theme)"
+  exit 0
+elif [ "$#" -eq 1 ]; then
+  if [ "$1" = "list" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    list_commands "$(get_default_theme)"
+    exit 0
+  fi
+  THEME_NAME="$(get_default_theme)"
+  NPM_COMMAND="$1"
+elif [ "$#" -eq 2 ]; then
+  if [ "$2" = "list" ] || [ "$2" = "-h" ] || [ "$2" = "--help" ]; then
+    list_commands "$1"
+    exit 0
+  fi
+  THEME_NAME="$1"
+  NPM_COMMAND="$2"
+else
+  echo "Usage: ddev theme [THEME_NAME] NPM_COMMAND"
+  exit 1
+fi
+
+THEME_PATH="docroot/themes/custom/$THEME_NAME"
+
+# Check if theme folder exists
+if [ ! -d "$THEME_PATH" ]; then
+  echo "Error: Theme '$THEME_NAME' does not exist in docroot/themes/custom/"
+  exit 1
+fi
+
+# Check if package.json exists
+if [ ! -f "$THEME_PATH/package.json" ]; then
+  echo "Error: No package.json found in '$THEME_PATH'"
+  exit 1
+fi
+
+# Check if the npm script exists
+if ! grep -q "\"$NPM_COMMAND\"" "$THEME_PATH/package.json"; then
+  echo "Error: npm script '$NPM_COMMAND' not found in package.json"
+  list_commands "$THEME_NAME"
+  exit 1
+fi
+
+# Run npm directly (already inside the web container)
+cd "$THEME_PATH"
+
+# Install dependencies if they haven't been installed yet
+if [ ! -d "node_modules" ]; then
+  echo "node_modules not found, running npm install..."
+  npm install
+fi
+
+npm run "$NPM_COMMAND"
