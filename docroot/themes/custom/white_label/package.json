@@ -4,8 +4,8 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "start": "node build/watch.js",
-    "build": "vite build --config build/vite.config.js",
+    "start": "NODE_ENV=development node build/watch.js",
+    "build": "NODE_ENV=development vite build --config build/vite.config.js",
     "build:prod": "NODE_ENV=production vite build --config build/vite.config.js",
     "lint": "eslint 'components/**/src/**/*.js' && stylelint 'components/**/src/**/*.scss'",
     "lint:fix": "eslint 'components/**/src/**/*.js' --fix && stylelint 'components/**/src/**/*.scss' --fix",

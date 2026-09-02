@@ -94,12 +94,31 @@ function cleanCssJs() {
   };
 }
 
+/**
+ * emptyOutDir is false (components/ also holds .twig/.yml source files), so
+ * a prod build won't otherwise clear .map files left over from a previous
+ * dev build. Without this, build:prod output could ship stale, mismatched
+ * source maps alongside freshly minified code.
+ */
+function cleanStaleSourcemaps() {
+  return {
+    name: "clean-stale-sourcemaps",
+    buildStart() {
+      if (!IS_PROD) return;
+      glob
+        .sync(path.join(COMPONENTS, "**/*.map"))
+        .forEach((file) => fs.rmSync(file, { force: true }));
+    },
+  };
+}
+
 module.exports = defineConfig({
   root: ROOT,
   build: {
     outDir: "components",
     emptyOutDir: false,
     sourcemap: IS_PROD ? false : true,
+    minify: IS_PROD,
     rollupOptions: {
       input: buildEntries(),
       output: {
@@ -131,6 +150,7 @@ module.exports = defineConfig({
       fix: false,
     }),
     svgSpritePlugin(),
+    cleanStaleSourcemaps(),
     cleanCssJs(),
     // Transpile compiled JS for older browsers (matches babel.config.js targets)
     babel({
