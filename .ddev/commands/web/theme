@@ -4,8 +4,8 @@ set -e
 ## Description: Run an npm script inside a theme (defaults to the site's default theme)
 ## Usage: theme [THEME_NAME] NPM_COMMAND
 ## Example: "ddev theme build"
-## Example: "ddev theme watch"
-## Example: "ddev theme white_label lint:fix"
+## Example: "ddev theme start"
+## Example: "ddev theme THEME_NAME lint:fix"
 ## Example: "ddev theme list"
 
 # Resolve the site's default theme via drush.

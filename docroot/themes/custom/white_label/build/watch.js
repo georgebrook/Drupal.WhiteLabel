@@ -2,6 +2,10 @@ const path = require("path");
 const chokidar = require("chokidar");
 const { build } = require("vite");
 
+// Read by vite.config.js to skip the build-summary table during watch mode
+// (rebuilds are frequent there; a full table on every save is noise).
+process.env.VITE_WATCH_MODE = "true";
+
 const ROOT = path.resolve(__dirname, "..");
 const COMPONENTS = path.resolve(ROOT, "components");
 const ICONS = path.resolve(ROOT, "images/icons");

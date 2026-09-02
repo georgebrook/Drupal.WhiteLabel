@@ -8,6 +8,7 @@
     "build": "NODE_ENV=development vite build --config build/vite.config.js",
     "build:prod": "NODE_ENV=production vite build --config build/vite.config.js",
     "lint": "eslint 'components/**/src/**/*.js' && stylelint 'components/**/src/**/*.scss'",
+    "lint:ci": "eslint 'components/**/src/**/*.js' --max-warnings=0 && stylelint 'components/**/src/**/*.scss' --max-warnings=0",
     "lint:fix": "eslint 'components/**/src/**/*.js' --fix && stylelint 'components/**/src/**/*.scss' --fix",
     "format": "prettier . --write",
     "format:check": "prettier . --check"
@@ -29,9 +30,9 @@
     "postcss-scss": "^4.0.9",
     "svgo": "^4.1.0",
     "prettier": "^3.3.0",
-    "@babel/core": "^7.28.5",
-    "@babel/preset-env": "^7.28.5",
-    "@rollup/plugin-babel": "^6.0.4",
-    "core-js": "^3.46.0"
+    "@babel/core": "^7.29.7",
+    "@babel/preset-env": "^7.29.7",
+    "@rollup/plugin-babel": "^6.1.0",
+    "core-js": "^3.50.0"
   }
 }

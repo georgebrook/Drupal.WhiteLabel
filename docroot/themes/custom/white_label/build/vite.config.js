@@ -1,51 +1,97 @@
 const path = require("path");
+const { fileURLToPath } = require("url");
+const zlib = require("zlib");
 const { glob } = require("glob");
 const { defineConfig } = require("vite");
 const eslint = require("vite-plugin-eslint2");
 const stylelint = require("vite-plugin-stylelint");
 const { babel } = require("@rollup/plugin-babel");
 const { optimize } = require("svgo");
+const sass = require("sass");
 const fs = require("fs");
 
 const ROOT = path.resolve(__dirname, "..");
 const COMPONENTS = path.resolve(ROOT, "components");
 const IS_CI = process.env.CI === "true";
 const IS_PROD = process.env.NODE_ENV === "production";
+// Set by watch.js. Skips the build-summary table during watch mode.
+const IS_WATCH = process.env.VITE_WATCH_MODE === "true";
 
 /**
- * Discover JS and SCSS entry points separately to avoid key collisions.
+ * Maps a component source file to its flattened output location.
  *
- * JS:   components/atoms/button/src/button.js   -> entry key: atoms/button/button
- *       output: components/atoms/button/button.js
- *
- * SCSS: components/atoms/button/src/button.scss -> entry key: styles/atoms/button/button
- *       output: components/atoms/button/button.css
- *       (the spurious styles/atoms/button/button.js stub is cleaned up by cleanCssJs)
+ * components/<group>/<name>/src/<name>.js -> entry key: <group>/<name>/<name>
+ *                                             output: components/<group>/<name>/<name>.js
  */
 function buildEntries() {
   const entries = {};
 
-  const addFiles = (pattern, keyPrefix = "") => {
-    glob.sync(pattern).forEach((file) => {
-      const parsed = path.parse(file);
-      const parts = parsed.dir.split(path.sep);
-      const srcIndex = parts.lastIndexOf("src");
-      const insideComponents = parts.slice(
-        parts.indexOf("components") + 1,
-        srcIndex
-      );
-      const base = insideComponents.length
-        ? `${insideComponents.join("/")}/${parsed.name}`
-        : parsed.name;
-      const entryKey = keyPrefix ? `${keyPrefix}/${base}` : base;
-      entries[entryKey] = file;
-    });
-  };
-
-  addFiles(path.resolve(COMPONENTS, "**/src/**/*.js"));
-  addFiles(path.resolve(COMPONENTS, "**/src/**/*.scss"), "styles");
+  glob.sync(path.resolve(COMPONENTS, "**/src/**/*.js")).forEach((file) => {
+    const parsed = path.parse(file);
+    const parts = parsed.dir.split(path.sep);
+    const srcIndex = parts.lastIndexOf("src");
+    const insideComponents = parts.slice(
+      parts.indexOf("components") + 1,
+      srcIndex
+    );
+    const entryKey = insideComponents.length
+      ? `${insideComponents.join("/")}/${parsed.name}`
+      : parsed.name;
+    entries[entryKey] = file;
+  });
 
   return entries;
+}
+
+/**
+ * Compiles component SCSS directly with dart-sass, instead of routing it
+ * through Vite/Rollup as pseudo entry points. Vite never writes an external
+ * .css.map for CSS-only entries (a long-standing limitation for CSS used as
+ * a rollupOptions.input rather than imported from JS), so compiling directly
+ * is what makes DevTools resolve styles back to the real .scss source in dev.
+ *
+ * components/<group>/<name>/src/<name>.scss -> components/<group>/<name>/<name>.css
+ */
+function compileScssPlugin() {
+  const outputPathFor = (file) => {
+    const parsed = path.parse(file);
+    const parts = parsed.dir.split(path.sep);
+    const srcIndex = parts.lastIndexOf("src");
+    const insideComponents = parts.slice(
+      parts.indexOf("components") + 1,
+      srcIndex
+    );
+    return path.join(COMPONENTS, ...insideComponents, `${parsed.name}.css`);
+  };
+
+  return {
+    name: "compile-scss",
+    buildStart() {
+      glob
+        .sync(path.resolve(COMPONENTS, "**/src/**/*.scss"))
+        .filter((file) => !path.parse(file).name.startsWith("_"))
+        .forEach((file) => {
+          const outFile = outputPathFor(file);
+          const result = sass.compile(file, {
+            sourceMap: !IS_PROD,
+            sourceMapIncludeSources: !IS_PROD,
+            style: IS_PROD ? "compressed" : "expanded",
+          });
+
+          let css = result.css;
+          if (!IS_PROD && result.sourceMap) {
+            result.sourceMap.sources = result.sourceMap.sources.map((src) =>
+              path.relative(path.dirname(outFile), fileURLToPath(src))
+            );
+            fs.writeFileSync(`${outFile}.map`, JSON.stringify(result.sourceMap));
+            css += `\n/*# sourceMappingURL=${path.basename(outFile)}.map */\n`;
+          }
+
+          fs.mkdirSync(path.dirname(outFile), { recursive: true });
+          fs.writeFileSync(outFile, css);
+        });
+    },
+  };
 }
 
 /**
@@ -81,20 +127,6 @@ function svgSpritePlugin() {
 }
 
 /**
- * Rollup plugin that removes the empty .js stubs Rollup emits for CSS-only
- * entries (e.g. styles/atoms/button/button.js) after the build completes.
- */
-function cleanCssJs() {
-  return {
-    name: "clean-css-js",
-    closeBundle() {
-      const outDir = path.resolve(ROOT, "components");
-      fs.rmSync(path.join(outDir, "styles"), { recursive: true, force: true });
-    },
-  };
-}
-
-/**
  * emptyOutDir is false (components/ also holds .twig/.yml source files), so
  * a prod build won't otherwise clear .map files left over from a previous
  * dev build. Without this, build:prod output could ship stale, mismatched
@@ -112,29 +144,166 @@ function cleanStaleSourcemaps() {
   };
 }
 
+// Colors matching .ddev/commands/common.sh's palette.
+const ANSI = {
+  reset: "\x1b[0m",
+  dim: "\x1b[2m",
+  bold: "\x1b[1m",
+  red: "\x1b[38;5;196m",
+  green: "\x1b[38;5;46m",
+  yellow: "\x1b[38;5;226m",
+  blue: "\x1b[38;5;33m",
+  magenta: "\x1b[38;5;201m",
+};
+
+// gzip-size budgets (bytes) per output type — tune as the theme grows.
+const SIZE_BUDGETS = { css: 15 * 1024, js: 40 * 1024 };
+const BAR_WIDTH = 20;
+
+const formatKb = (bytes) => `${(bytes / 1024).toFixed(2)} kB`;
+
+const budgetColor = (bytes, budget) => {
+  if (bytes >= budget) return ANSI.red;
+  if (bytes >= budget * 0.6) return ANSI.yellow;
+  return ANSI.green;
+};
+
+/**
+ * Replaces Vite's flat per-file gzip listing (reportCompressedSize) with a
+ * grouped, sized, budget-checked summary: a proportional bar per file, gzip
+ * size colored against a per-type budget, subtotals per type, a grand total,
+ * and a rollup of any files over budget. Skipped in watch mode — rebuilds
+ * are frequent there and a full table on every save is more noise than help.
+ *
+ * CSS is compiled by compileScssPlugin directly to disk rather than through
+ * Rollup, so it never appears in writeBundle's `bundle` — read those files
+ * straight from disk instead.
+ */
+function buildSummary() {
+  return {
+    name: "build-summary",
+    apply: "build",
+    writeBundle(_options, bundle) {
+      if (IS_WATCH) return;
+
+      const jsRows = Object.entries(bundle)
+        .map(([fileName, output]) => {
+          const ext = path.extname(fileName).slice(1).toLowerCase();
+          if (ext !== "js") return null;
+          const raw = output.type === "chunk" ? output.code : output.source;
+          const rawBuf = Buffer.isBuffer(raw)
+            ? raw
+            : Buffer.from(raw ?? "", "utf-8");
+          return {
+            fileName,
+            ext,
+            rawBytes: rawBuf.length,
+            gzipBytes: zlib.gzipSync(rawBuf).length,
+          };
+        })
+        .filter(Boolean);
+
+      const cssRows = glob.sync(path.join(COMPONENTS, "**/*.css")).map((file) => {
+        const rawBuf = fs.readFileSync(file);
+        return {
+          fileName: path.relative(COMPONENTS, file),
+          ext: "css",
+          rawBytes: rawBuf.length,
+          gzipBytes: zlib.gzipSync(rawBuf).length,
+        };
+      });
+
+      const rows = [...jsRows, ...cssRows];
+
+      if (!rows.length) return;
+
+      const maxGzip = Math.max(...rows.map((r) => r.gzipBytes));
+      const nameWidth = Math.max(...rows.map((r) => r.fileName.length));
+      const warnings = [];
+      let grandRaw = 0;
+      let grandGzip = 0;
+
+      console.log(`\n${ANSI.magenta}◇ Build summary${ANSI.reset}`);
+
+      for (const type of ["css", "js"]) {
+        const list = rows
+          .filter((r) => r.ext === type)
+          .sort((a, b) => b.gzipBytes - a.gzipBytes);
+        if (!list.length) continue;
+
+        console.log(`\n  ${ANSI.blue}${type.toUpperCase()}${ANSI.reset}`);
+        let typeRaw = 0;
+        let typeGzip = 0;
+        const budget = SIZE_BUDGETS[type];
+
+        for (const r of list) {
+          typeRaw += r.rawBytes;
+          typeGzip += r.gzipBytes;
+          grandRaw += r.rawBytes;
+          grandGzip += r.gzipBytes;
+
+          const filled = Math.max(1, Math.round((r.gzipBytes / maxGzip) * BAR_WIDTH));
+          const bar = "█".repeat(filled) + "░".repeat(BAR_WIDTH - filled);
+          const color = budgetColor(r.gzipBytes, budget);
+          const overBudget = r.gzipBytes >= budget;
+          if (overBudget) {
+            warnings.push(
+              `${r.fileName} — ${formatKb(r.gzipBytes)} gzip (budget ${formatKb(budget)})`
+            );
+          }
+
+          console.log(
+            `    ${r.fileName.padEnd(nameWidth)}  ${color}${bar}${ANSI.reset}  ` +
+              `${formatKb(r.rawBytes).padStart(9)} → ${color}${formatKb(r.gzipBytes).padStart(9)} gzip${ANSI.reset}` +
+              (overBudget ? ` ${ANSI.red}⚠${ANSI.reset}` : "")
+          );
+        }
+
+        console.log(`    ${ANSI.dim}${"—".repeat(nameWidth + BAR_WIDTH + 4)}${ANSI.reset}`);
+        console.log(
+          `    ${"Total".padEnd(nameWidth)}  ${" ".repeat(BAR_WIDTH)}  ` +
+            `${formatKb(typeRaw).padStart(9)} → ${formatKb(typeGzip).padStart(9)} gzip`
+        );
+      }
+
+      console.log(
+        `\n  ${ANSI.bold}Grand total: ${formatKb(grandRaw)} → ${formatKb(grandGzip)} gzip${ANSI.reset} (${rows.length} files)`
+      );
+
+      if (warnings.length) {
+        console.log(`\n  ${ANSI.yellow}⚠ ${warnings.length} file(s) over budget:${ANSI.reset}`);
+        warnings.forEach((w) => console.log(`    ${ANSI.yellow}- ${w}${ANSI.reset}`));
+      }
+
+      console.log("");
+    },
+  };
+}
+
 module.exports = defineConfig({
   root: ROOT,
+  // Vite's own per-file size listing is redundant with buildSummary()'s
+  // table below; drop to 'warn' so only warnings/errors and our summary show.
+  logLevel: "warn",
+  // Vite defaults asset URLs to site-root-absolute (e.g. /assets/foo.woff2),
+  // which breaks once this theme is served from a Drupal themes/ subpath.
+  // A relative base makes emitted url()s relative to the referencing CSS file.
+  base: "",
   build: {
     outDir: "components",
     emptyOutDir: false,
     sourcemap: IS_PROD ? false : true,
     minify: IS_PROD,
+    // Replaced by the build-summary plugin's grouped, budget-checked table.
+    reportCompressedSize: false,
     rollupOptions: {
       input: buildEntries(),
       output: {
         entryFileNames: "[name].js",
         chunkFileNames: "[name]-[hash].js",
-        assetFileNames: (assetInfo) => {
-          if (assetInfo.name?.endsWith(".css")) {
-            // Strip the "styles/" prefix so button.css lands next to button.js
-            // e.g. styles/atoms/button/button.css -> atoms/button/button.css
-            return assetInfo.name.replace(/^styles\//, "");
-          }
-          return "assets/[name]-[hash][extname]";
-        },
+        assetFileNames: "assets/[name]-[hash][extname]",
       },
     },
-    cssCodeSplit: true,
   },
   plugins: [
     eslint({
@@ -150,8 +319,9 @@ module.exports = defineConfig({
       fix: false,
     }),
     svgSpritePlugin(),
+    compileScssPlugin(),
     cleanStaleSourcemaps(),
-    cleanCssJs(),
+    buildSummary(),
     // Transpile compiled JS for older browsers (matches babel.config.js targets)
     babel({
       babelHelpers: "bundled",
