@@ -4,9 +4,9 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "start": "NODE_ENV=development node build/watch.js",
-    "build": "NODE_ENV=development vite build --config build/vite.config.js",
-    "build:prod": "NODE_ENV=production vite build --config build/vite.config.js",
+    "start": "NODE_ENV=development node build/watch.mjs",
+    "build": "NODE_ENV=development vite build --config build/vite.config.mjs",
+    "build:prod": "NODE_ENV=production vite build --config build/vite.config.mjs",
     "lint": "eslint 'components/**/src/**/*.js' && stylelint 'components/**/src/**/*.scss'",
     "lint:ci": "eslint 'components/**/src/**/*.js' --max-warnings=0 && stylelint 'components/**/src/**/*.scss' --max-warnings=0",
     "lint:fix": "eslint 'components/**/src/**/*.js' --fix && stylelint 'components/**/src/**/*.scss' --fix",

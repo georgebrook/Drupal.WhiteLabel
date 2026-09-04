@@ -1,11 +1,13 @@
-const path = require("path");
-const chokidar = require("chokidar");
-const { build } = require("vite");
+import path from "path";
+import { fileURLToPath } from "url";
+import chokidar from "chokidar";
+import { build } from "vite";
 
-// Read by vite.config.js to skip the build-summary table during watch mode
+// Read by vite.config.mjs to skip the build-summary table during watch mode
 // (rebuilds are frequent there; a full table on every save is noise).
 process.env.VITE_WATCH_MODE = "true";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const COMPONENTS = path.resolve(ROOT, "components");
 const ICONS = path.resolve(ROOT, "images/icons");
@@ -15,8 +17,9 @@ let pending = false;
 
 /**
  * Run a full Vite build.
- * Re-requires vite.config.js fresh each time so that newly added or removed
- * component files are picked up by the entry-discovery glob in buildEntries().
+ * Re-imports vite.config.mjs fresh each time (cache-busted via query string)
+ * so that newly added or removed component files are picked up by the
+ * entry-discovery glob in buildEntries().
  */
 async function runBuild(reason) {
   if (building) {
@@ -28,8 +31,9 @@ async function runBuild(reason) {
   console.log(`\n[watch] Rebuilding (${reason})...`);
 
   try {
-    delete require.cache[require.resolve("./vite.config.js")];
-    const freshConfig = require("./vite.config.js");
+    const { default: freshConfig } = await import(
+      `./vite.config.mjs?update=${Date.now()}`
+    );
     await build(freshConfig);
     console.log(`[watch] Done in ${Date.now() - start}ms`);
   } catch (err) {

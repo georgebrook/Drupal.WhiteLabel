@@ -1,15 +1,16 @@
-const path = require("path");
-const { fileURLToPath } = require("url");
-const zlib = require("zlib");
-const { glob } = require("glob");
-const { defineConfig } = require("vite");
-const eslint = require("vite-plugin-eslint2");
-const stylelint = require("vite-plugin-stylelint");
-const { babel } = require("@rollup/plugin-babel");
-const { optimize } = require("svgo");
-const sass = require("sass");
-const fs = require("fs");
+import path from "path";
+import { fileURLToPath } from "url";
+import zlib from "zlib";
+import fs from "fs";
+import { glob } from "glob";
+import { defineConfig } from "vite";
+import eslint from "vite-plugin-eslint2";
+import stylelint from "vite-plugin-stylelint";
+import { babel } from "@rollup/plugin-babel";
+import { optimize } from "svgo";
+import * as sass from "sass";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const COMPONENTS = path.resolve(ROOT, "components");
 const IS_CI = process.env.CI === "true";
@@ -280,7 +281,7 @@ function buildSummary() {
   };
 }
 
-module.exports = defineConfig({
+export default defineConfig({
   root: ROOT,
   // Vite's own per-file size listing is redundant with buildSummary()'s
   // table below; drop to 'warn' so only warnings/errors and our summary show.
